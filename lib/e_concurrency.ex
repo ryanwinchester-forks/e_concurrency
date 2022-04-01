@@ -24,7 +24,7 @@ defmodule EConcurrency do
   Call the Plug. Instead of using a router, we'll just pattern-match on the path.
   """
   @impl Plug
-  # This one will match on the /sync path.
+  # This one will match on the "/sync" path.
   def call(%Conn{path_info: ["sync"]} = conn, _opts) do
     {runtime_usec, out_list} = :timer.tc(Client, :call_apis_sync, [])
 
@@ -37,10 +37,14 @@ defmodule EConcurrency do
     send_resp(conn, 200, "Sync runtime #{runtime_ms} ms")
   end
 
-  # This one will match on the /async path.
+  # This one will match on the "/async" path.
   def call(%Conn{path_info: ["async"]} = conn, _opts) do
     {runtime_usec, out_stream} = :timer.tc(Client, :call_apis_async, [])
 
+    # Need to use `Enum` module since the result of `Task.async_stream/1` is a
+    # Stream and not a list. So, we can't use a list comprehension.
+    # Also something to note is that each result of `Task.async_stream/1` is
+    # `{:ok, value}` or `{:error, reason}` instead of just the result.
     Enum.map(out_stream, fn {:ok, o} ->
       IO.puts("Item count #{length(o.body)}")
     end)
