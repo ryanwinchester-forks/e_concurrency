@@ -29,6 +29,8 @@ defmodule EConcurrency.Client do
   @spec call_apis_async() :: [{:ok, Req.Response.t()} | {:exit, atom()}]
   def call_apis_async do
     Logger.debug("[Client] calling APIs async...")
+    # `Task.async_stream/1` returns a Stream that is lazily-evaluated, so we
+    # need to force it to run and turn the result into a list with `Enum` module.
     Task.async_stream(@urls, &Req.get!/1) |> Enum.to_list()
   end
 

@@ -26,9 +26,9 @@ defmodule EConcurrency do
   @impl Plug
   # This one will match on the "/sync" path.
   def call(%Conn{path_info: ["sync"]} = conn, _opts) do
-    {runtime_usec, out_list} = :timer.tc(Client, :call_apis_sync, [])
+    {runtime_usec, out} = :timer.tc(Client, :call_apis_sync, [])
 
-    for o <- out_list do
+    for o <- out do
       IO.puts("Item count #{length(o.body)}")
     end
 
@@ -39,15 +39,13 @@ defmodule EConcurrency do
 
   # This one will match on the "/async" path.
   def call(%Conn{path_info: ["async"]} = conn, _opts) do
-    {runtime_usec, out_stream} = :timer.tc(Client, :call_apis_async, [])
+    {runtime_usec, out} = :timer.tc(Client, :call_apis_async, [])
 
-    # Need to use `Enum` module since the result of `Task.async_stream/1` is a
-    # Stream and not a list. So, we can't use a list comprehension.
-    # Also something to note is that each result of `Task.async_stream/1` is
-    # `{:ok, value}` or `{:error, reason}` instead of just the result.
-    Enum.map(out_stream, fn {:ok, o} ->
+    # Each result of `Task.async_stream/1` is `{:ok, value}` or
+    # `{:error, reason}` instead of just the result.
+    for {:ok, o} <- out do
       IO.puts("Item count #{length(o.body)}")
-    end)
+    end
 
     runtime_ms = runtime_usec / 1000
 
