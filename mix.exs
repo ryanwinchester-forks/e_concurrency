@@ -24,6 +24,7 @@ defmodule EConcurrency.MixProject do
     [
       {:req, "~> 0.2.1"},
       {:plug_cowboy, "~> 2.0"},
+      {:benchee, "~> 1.0", only: :dev},
       {:mimic, "~> 1.7", only: :test}
     ]
   end

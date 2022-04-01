@@ -29,7 +29,7 @@ defmodule EConcurrency.Client do
   @spec call_apis_async() :: [{:ok, Req.Response.t()} | {:exit, atom()}]
   def call_apis_async do
     Logger.debug("[Client] calling APIs async...")
-    Task.async_stream(@urls, &Req.get!/1)
+    Task.async_stream(@urls, &Req.get!/1) |> Enum.to_list()
   end
 
   @doc """
